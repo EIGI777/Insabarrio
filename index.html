@@ -33,7 +33,7 @@
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .input-field {
+        .input-field, .select-field {
             width: 100%;
             padding: 0.75rem 1rem;
             margin-bottom: 1rem;
@@ -42,7 +42,7 @@
             font-size: 1rem;
             transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
-        .input-field:focus {
+        .input-field:focus, .select-field:focus {
             outline: none;
             border-color: #10B981; /* Verde más oscuro al enfocar */
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); /* Sombra suave al enfocar */
@@ -129,8 +129,6 @@
             100% { transform: rotate(360deg); }
         }
     </style>
-    <!-- Firebase SDKs (Modificado para usar módulos directamente) -->
-    <!-- No se necesitan los SDKs compat si usas import { ... } from "firebase/..." -->
 </head>
 <body>
     <div class="container">
@@ -148,7 +146,9 @@
         <!-- Mensaje de estado para el usuario -->
         <div id="messageBox" class="message-box"></div>
 
+        <!-- Formulario de Autenticación (Login/Register) -->
         <form id="authForm" class="space-y-4">
+            <!-- Campos de Email y Contraseña (comunes para Login y Registro) -->
             <div>
                 <label for="email" class="block text-left text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
                 <input type="email" id="email" name="email" class="input-field" placeholder="ejemplo@insabarrio.com" required>
@@ -156,6 +156,54 @@
             <div>
                 <label for="password" class="block text-left text-sm font-medium text-gray-700 mb-1">Contraseña</label>
                 <input type="password" id="password" name="password" class="input-field" placeholder="••••••••" required>
+            </div>
+
+            <!-- Campos adicionales para Registro (inicialmente ocultos) -->
+            <div id="registerFields" class="space-y-4" style="display: none;">
+                <div>
+                    <label for="fullName" class="block text-left text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+                    <input type="text" id="fullName" name="fullName" class="input-field" placeholder="Juan Pérez">
+                </div>
+                <div>
+                    <label for="dob" class="block text-left text-sm font-medium text-gray-700 mb-1">Fecha de Nacimiento</label>
+                    <input type="date" id="dob" name="dob" class="input-field">
+                </div>
+                <div>
+                    <label for="idCard" class="block text-left text-sm font-medium text-gray-700 mb-1">Cédula de Identidad</label>
+                    <input type="text" id="idCard" name="idCard" class="input-field" placeholder="V-12345678">
+                </div>
+                <div>
+                    <label for="address" class="block text-left text-sm font-medium text-gray-700 mb-1">Dirección</label>
+                    <input type="text" id="address" name="address" class="input-field" placeholder="Calle, Sector, Ciudad">
+                </div>
+                <div>
+                    <label for="contactPhone" class="block text-left text-sm font-medium text-gray-700 mb-1">Teléfono de Contacto</label>
+                    <input type="tel" id="contactPhone" name="contactPhone" class="input-field" placeholder="0412-1234567">
+                </div>
+                <div>
+                    <label for="userType" class="block text-left text-sm font-medium text-gray-700 mb-1">Tipo de Usuario</label>
+                    <select id="userType" name="userType" class="select-field">
+                        <option value="">Selecciona tu tipo</option>
+                        <option value="medico">Médico</option>
+                        <option value="regular">Regular</option>
+                        <option value="social_representative">Representante Social</option>
+                    </select>
+                </div>
+                <!-- Campos específicos para médicos (inicialmente ocultos) -->
+                <div id="medicalFields" class="space-y-4" style="display: none;">
+                    <div>
+                        <label for="clinic" class="block text-left text-sm font-medium text-gray-700 mb-1">Consultorio / Centro</label>
+                        <input type="text" id="clinic" name="clinic" class="input-field" placeholder="Consultorio Popular Los Mangos">
+                    </div>
+                    <div>
+                        <label for="medicalCode" class="block text-left text-sm font-medium text-gray-700 mb-1">Código de Médico</label>
+                        <input type="text" id="medicalCode" name="medicalCode" class="input-field" placeholder="MED-001">
+                    </div>
+                    <div>
+                        <label for="position" class="block text-left text-sm font-medium text-gray-700 mb-1">Cargo</label>
+                        <input type="text" id="position" name="position" class="input-field" placeholder="Médico General / Especialista">
+                    </div>
+                </div>
             </div>
 
             <div class="flex items-center justify-between">
@@ -171,8 +219,8 @@
             </div>
 
             <div>
-                <button type="submit" id="loginButton" class="btn btn-primary">
-                    Iniciar Sesión <span id="loginSpinner" class="spinner" style="display: none;"></span>
+                <button type="submit" id="mainActionButton" class="btn btn-primary">
+                    Iniciar Sesión <span id="actionSpinner" class="spinner" style="display: none;"></span>
                 </button>
             </div>
         </form>
@@ -180,7 +228,7 @@
         <div class="mt-6 text-center">
             <p class="text-sm text-gray-600">
                 ¿Eres nuevo en Insabarrio?
-                <a href="#" id="registerLink" class="link">Regístrate aquí <span id="registerSpinner" class="spinner" style="display: none;"></span></a> para acceder a todos nuestros servicios de salud.
+                <a href="#" id="toggleAuthMode" class="link">Regístrate aquí</a> para acceder a todos nuestros servicios de salud.
             </p>
         </div>
 
@@ -201,7 +249,8 @@
     <script type="module">
         // Importa las funciones necesarias directamente desde los módulos de Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
         // Si usas Analytics, también lo importarías así:
         // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
 
@@ -219,138 +268,231 @@
         // Inicializa Firebase
         let app;
         let auth;
-        // let analytics; // Descomenta si usas Analytics
+        let db; // Instancia de Firestore
 
         try {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app); // Obtiene la instancia de autenticación
-            // analytics = getAnalytics(app); // Descomenta si usas Analytics
-            console.log('Firebase inicializado correctamente.');
+            db = getFirestore(app); // Obtiene la instancia de Firestore
+            console.log('Firebase y Firestore inicializados correctamente.');
         } catch (error) {
             console.error('Error al inicializar Firebase:', error);
             showMessage('Error crítico: No se pudo inicializar Firebase. Revisa tu configuración.', 'error');
         }
 
+        // Elementos del DOM
+        const messageBox = document.getElementById('messageBox');
+        const authForm = document.getElementById('authForm');
+        const mainActionButton = document.getElementById('mainActionButton');
+        const toggleAuthModeLink = document.getElementById('toggleAuthMode');
+        const registerFields = document.getElementById('registerFields');
+        const medicalFields = document.getElementById('medicalFields');
+        const userTypeSelect = document.getElementById('userType');
+
+        let isRegisterMode = false; // Estado para alternar entre Login y Registro
+
         // Función para mostrar mensajes al usuario
         function showMessage(message, type = 'success') {
-            const messageBox = document.getElementById('messageBox');
             messageBox.textContent = message;
-            messageBox.className = `message-box ${type}`; // Añade la clase de tipo (success/error)
-            messageBox.style.display = 'block'; // Muestra el mensaje
+            messageBox.className = `message-box ${type}`;
+            messageBox.style.display = 'block';
             setTimeout(() => {
-                messageBox.style.display = 'none'; // Oculta el mensaje después de 5 segundos
+                messageBox.style.display = 'none';
             }, 5000);
         }
 
-        // Manejar el formulario de inicio de sesión
-        document.getElementById('loginButton').addEventListener('click', async (event) => {
-            event.preventDefault(); // Evita el envío por defecto del formulario
+        // Función para mostrar/ocultar spinner en el botón principal
+        function toggleSpinner(show) {
+            let spinner = document.getElementById('actionSpinner');
+            if (!spinner) { // Si el spinner no existe, lo creamos
+                spinner = document.createElement('span');
+                spinner.id = 'actionSpinner';
+                spinner.className = 'spinner';
+                mainActionButton.appendChild(spinner);
+            }
+            if (show) {
+                spinner.style.display = 'inline-block';
+                mainActionButton.disabled = true;
+            } else {
+                spinner.style.display = 'none';
+                mainActionButton.disabled = false;
+            }
+        }
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const loginButton = document.getElementById('loginButton');
-            const loginSpinner = document.createElement('span'); // Crear el spinner dinámicamente
-            loginSpinner.className = 'spinner';
-            loginSpinner.id = 'loginSpinner';
-            loginSpinner.style.display = 'inline-block';
-            loginButton.appendChild(loginSpinner); // Añadir el spinner al botón
-
-            loginButton.disabled = true; // Deshabilita el botón
-
-            try {
-                // Asegúrate de que auth esté definido antes de usarlo
-                if (!auth) { // Simplificado de typeof auth === 'undefined'
-                    throw new Error('Firebase Auth no está inicializado. Revisa firebaseConfig.');
-                }
-                // Iniciar sesión con correo y contraseña
-                await signInWithEmailAndPassword(auth, email, password); // Usa la función importada
-                showMessage('Inicio de sesión exitoso. ¡Bienvenido!', 'success');
-                // Aquí puedes redirigir al usuario a una página de dashboard
-                // window.location.href = '/dashboard.html';
-            } catch (error) {
-                console.error('Error al iniciar sesión:', error.code, error.message);
-                let errorMessage = 'Error al iniciar sesión. Por favor, verifica tus credenciales.';
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    errorMessage = 'Correo electrónico o contraseña incorrectos.';
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = 'El formato del correo electrónico es inválido.';
-                } else if (error.code === 'auth/network-request-failed') {
-                    errorMessage = 'Error de conexión a internet. Por favor, revisa tu conexión.';
-                }
-                showMessage(errorMessage, 'error');
-            } finally {
-                loginButton.disabled = false; // Habilita el botón
-                if (loginSpinner.parentNode) {
-                    loginSpinner.parentNode.removeChild(loginSpinner); // Elimina el spinner
-                }
+        // Alternar entre modo Login y Registro
+        toggleAuthModeLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            isRegisterMode = !isRegisterMode;
+            if (isRegisterMode) {
+                mainActionButton.innerHTML = 'Registrarse <span id="actionSpinner" class="spinner" style="display: none;"></span>';
+                toggleAuthModeLink.textContent = '¿Ya tienes cuenta? Iniciar Sesión';
+                registerFields.style.display = 'block'; // Muestra campos adicionales
+                // Limpiar campos de login al cambiar a registro
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+            } else {
+                mainActionButton.innerHTML = 'Iniciar Sesión <span id="actionSpinner" class="spinner" style="display: none;"></span>';
+                toggleAuthModeLink.textContent = 'Regístrate aquí';
+                registerFields.style.display = 'none'; // Oculta campos adicionales
+                medicalFields.style.display = 'none'; // Asegura que los campos médicos también se oculten
+                userTypeSelect.value = ''; // Limpia la selección de tipo de usuario
             }
         });
 
-        // Manejar el enlace de registro
-        document.getElementById('registerLink').addEventListener('click', async (event) => {
-            event.preventDefault(); // Evita la navegación por defecto
+        // Mostrar/ocultar campos médicos según el tipo de usuario
+        userTypeSelect.addEventListener('change', () => {
+            if (userTypeSelect.value === 'medico') {
+                medicalFields.style.display = 'block';
+            } else {
+                medicalFields.style.display = 'none';
+            }
+        });
+
+        // Manejar el envío del formulario (Login o Registro)
+        authForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const registerLink = document.getElementById('registerLink');
-            const registerSpinner = document.createElement('span'); // Crear el spinner dinámicamente
-            registerSpinner.className = 'spinner';
-            registerSpinner.id = 'registerSpinner';
-            registerSpinner.style.display = 'inline-block';
-            registerLink.appendChild(registerSpinner); // Añadir el spinner al enlace
 
-            // Deshabilita el enlace y muestra el spinner
-            registerLink.style.pointerEvents = 'none'; // Deshabilita clics
-
-            if (!email || !password) {
-                showMessage('Por favor, ingresa un correo electrónico y una contraseña para registrarte.', 'error');
-                registerLink.style.pointerEvents = 'auto'; // Habilita clics
-                if (registerSpinner.parentNode) {
-                    registerSpinner.parentNode.removeChild(registerSpinner); // Elimina el spinner
-                }
-                return;
-            }
+            toggleSpinner(true); // Mostrar spinner y deshabilitar botón
 
             try {
-                // Asegúrate de que auth esté definido antes de usarlo
-                if (!auth) { // Simplificado de typeof auth === 'undefined'
-                    throw new Error('Firebase Auth no está inicializado. Revisa firebaseConfig.');
+                if (!auth || !db) {
+                    throw new Error('Firebase Auth o Firestore no están inicializados. Revisa firebaseConfig.');
                 }
-                // Registrar nuevo usuario con correo y contraseña
-                await createUserWithEmailAndPassword(auth, email, password); // Usa la función importada
-                showMessage('Registro exitoso. ¡Ahora puedes iniciar sesión!', 'success');
-                // Opcional: Limpiar los campos después del registro exitoso
-                document.getElementById('email').value = '';
-                document.getElementById('password').value = '';
+
+                if (isRegisterMode) {
+                    // Lógica de Registro
+                    const fullName = document.getElementById('fullName').value;
+                    const dob = document.getElementById('dob').value;
+                    const idCard = document.getElementById('idCard').value;
+                    const address = document.getElementById('address').value;
+                    const contactPhone = document.getElementById('contactPhone').value;
+                    const userType = userTypeSelect.value;
+
+                    // Campos específicos de médico
+                    let clinic = '';
+                    let medicalCode = '';
+                    let position = '';
+                    if (userType === 'medico') {
+                        clinic = document.getElementById('clinic').value;
+                        medicalCode = document.getElementById('medicalCode').value;
+                        position = document.getElementById('position').value;
+                    }
+
+                    // Validación básica de campos de registro
+                    if (!fullName || !dob || !idCard || !address || !contactPhone || !userType) {
+                        showMessage('Por favor, completa todos los campos de registro.', 'error');
+                        return;
+                    }
+                    if (userType === 'medico' && (!clinic || !medicalCode || !position)) {
+                        showMessage('Por favor, completa todos los campos específicos para médicos.', 'error');
+                        return;
+                    }
+
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+
+                    // Guardar datos adicionales del usuario en Firestore
+                    await setDoc(doc(db, "users", user.uid), {
+                        email: email,
+                        fullName: fullName,
+                        dob: dob,
+                        idCard: idCard,
+                        address: address,
+                        contactPhone: contactPhone,
+                        userType: userType,
+                        clinic: clinic, // Se guardará vacío si no es médico
+                        medicalCode: medicalCode, // Se guardará vacío si no es médico
+                        position: position, // Se guardará vacío si no es médico
+                        createdAt: new Date()
+                    });
+
+                    showMessage('Registro exitoso. ¡Ahora puedes iniciar sesión!', 'success');
+                    // Volver a modo login después del registro exitoso
+                    isRegisterMode = false;
+                    mainActionButton.innerHTML = 'Iniciar Sesión <span id="actionSpinner" class="spinner" style="display: none;"></span>';
+                    toggleAuthModeLink.textContent = 'Regístrate aquí';
+                    registerFields.style.display = 'none';
+                    medicalFields.style.display = 'none';
+                    userTypeSelect.value = '';
+                    document.getElementById('email').value = '';
+                    document.getElementById('password').value = '';
+
+                } else {
+                    // Lógica de Inicio de Sesión
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+
+                    // Obtener datos del usuario de Firestore
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        console.log("Datos del usuario logueado:", userData);
+
+                        if (userData.userType === 'medico') {
+                            showMessage('Inicio de sesión exitoso. ¡Bienvenido, Médico!', 'success');
+                            // Redirigir al panel de médico
+                            window.location.href = '/dashboard.html'; // ¡Asegúrate de que esta ruta sea correcta!
+                        } else {
+                            // Si no es médico, cerrar sesión y mostrar mensaje
+                            await signOut(auth);
+                            showMessage('Acceso denegado. Solo usuarios médicos pueden acceder al panel por ahora.', 'error');
+                        }
+                    } else {
+                        // Si el documento del usuario no existe en Firestore (debería existir si se registró correctamente)
+                        await signOut(auth); // Cerrar sesión por seguridad
+                        showMessage('Error: Datos de usuario no encontrados. Por favor, contacta a soporte.', 'error');
+                    }
+                }
             } catch (error) {
-                console.error('Error al registrar usuario:', error.code, error.message);
-                let errorMessage = 'Error al registrar el usuario.';
-                if (error.code === 'auth/email-already-in-use') {
+                console.error('Error de autenticación:', error.code, error.message);
+                let errorMessage = 'Error de autenticación. Por favor, intenta de nuevo.';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    errorMessage = 'Correo electrónico o contraseña incorrectos.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'El formato del correo electrónico es inválido.';
+                } else if (error.code === 'auth/email-already-in-use') {
                     errorMessage = 'Este correo electrónico ya está registrado.';
                 } else if (error.code === 'auth/weak-password') {
                     errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = 'El formato del correo electrónico es inválido.';
                 } else if (error.code === 'auth/network-request-failed') {
                     errorMessage = 'Error de conexión a internet. Por favor, revisa tu conexión.';
                 }
                 showMessage(errorMessage, 'error');
             } finally {
-                registerLink.style.pointerEvents = 'auto'; // Habilita clics
-                if (registerSpinner.parentNode) {
-                    registerSpinner.parentNode.removeChild(registerSpinner); // Elimina el spinner
-                }
+                toggleSpinner(false); // Ocultar spinner y habilitar botón
             }
         });
 
         // Opcional: Escuchar cambios en el estado de autenticación (útil para saber si el usuario ya está logueado)
-        // Solo si auth está definido
-        if (auth) { // Simplificado de typeof auth !== 'undefined'
-            onAuthStateChanged(auth, user => { // Usa la función importada
+        if (auth) {
+            onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     console.log('Usuario autenticado:', user.email);
-                    // Puedes redirigir al usuario automáticamente si ya está logueado
-                    // window.location.href = '/dashboard.html';
+                    // Aquí podrías redirigir automáticamente si ya está logueado y es médico
+                    // Esta lógica de redirección automática es importante para la UX
+                    const userDocRef = doc(db, "users", user.uid);
+                    try {
+                        const docSnap = await getDoc(userDocRef);
+                        if (docSnap.exists() && docSnap.data().userType === 'medico') {
+                            // Solo redirigir si no estamos ya en la página del dashboard
+                            if (window.location.pathname !== '/dashboard.html') {
+                                window.location.href = '/dashboard.html';
+                            }
+                        } else if (docSnap.exists() && docSnap.data().userType !== 'medico') {
+                            // Si el usuario no es médico y está logueado en la página de login, lo deslogueamos
+                            // para evitar que se quede en un bucle si intenta loguearse de nuevo.
+                            await signOut(auth);
+                            showMessage('Acceso denegado. Solo usuarios médicos pueden acceder al panel por ahora.', 'error');
+                        }
+                    } catch (error) {
+                        console.error("Error al obtener datos de usuario en onAuthStateChanged:", error);
+                        await signOut(auth); // Cerrar sesión si hay error al obtener datos
+                        showMessage('Error al verificar el perfil de usuario. Por favor, intenta de nuevo.', 'error');
+                    }
                 } else {
                     console.log('Ningún usuario autenticado.');
                 }
