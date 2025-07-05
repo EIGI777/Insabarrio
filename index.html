@@ -96,6 +96,22 @@
             color: #4B5563;
             margin-top: 1rem;
         }
+        /* Estilos para el mensaje de estado */
+        .message-box {
+            background-color: #f0fdf4; /* Verde muy claro */
+            border: 1px solid #dcfce7; /* Borde verde claro */
+            color: #16a34a; /* Texto verde oscuro */
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            text-align: left;
+            display: none; /* Oculto por defecto */
+        }
+        .message-box.error {
+            background-color: #fef2f2; /* Rojo muy claro */
+            border-color: #fee2e2; /* Borde rojo claro */
+            color: #dc2626; /* Texto rojo oscuro */
+        }
     </style>
 </head>
 <body>
@@ -111,7 +127,10 @@
             <p class="text-gray-600 mt-2">Tu Portal Unificado de Salud en Carabobo</p>
         </div>
 
-        <form action="#" method="POST" class="space-y-4">
+        <!-- Mensaje de estado para el usuario -->
+        <div id="messageBox" class="message-box"></div>
+
+        <form id="loginForm" class="space-y-4">
             <div>
                 <label for="email" class="block text-left text-sm font-medium text-gray-700 mb-1">Correo electrónico o Nombre de usuario</label>
                 <input type="text" id="email" name="email" class="input-field" placeholder="ejemplo@insabarrio.com" required>
@@ -143,7 +162,7 @@
         <div class="mt-6 text-center">
             <p class="text-sm text-gray-600">
                 ¿Eres nuevo en Insabarrio?
-                <a href="#" class="link">Regístrate aquí</a> para acceder a todos nuestros servicios de salud.
+                <a href="#" id="registerLink" class="link">Regístrate aquí</a> para acceder a todos nuestros servicios de salud.
             </p>
         </div>
 
@@ -160,5 +179,90 @@
             </p>
         </div>
     </div>
+
+    <script>
+        // Función para mostrar mensajes al usuario
+        function showMessage(message, type = 'success') {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type}`; // Añade la clase de tipo (success/error)
+            messageBox.style.display = 'block'; // Muestra el mensaje
+            setTimeout(() => {
+                messageBox.style.display = 'none'; // Oculta el mensaje después de 5 segundos
+            }, 5000);
+        }
+
+        // URL base de tu backend (ajusta esto cuando despliegues tu backend)
+        // Si estás ejecutando el backend localmente, podría ser 'http://localhost:3000'
+        const BASE_URL = 'http://localhost:3000'; // ¡IMPORTANTE! Cambia esto por la URL de tu backend desplegado
+
+        // Manejar el formulario de inicio de sesión
+        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+            event.preventDefault(); // Evita el envío por defecto del formulario
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${BASE_URL}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(data.message, 'success');
+                    // Redirigir al usuario o guardar token de sesión si lo hubiera
+                    // window.location.href = '/dashboard'; // Ejemplo de redirección
+                } else {
+                    showMessage(data.message || 'Error al iniciar sesión.', 'error');
+                }
+            } catch (error) {
+                console.error('Error de red o del servidor:', error);
+                showMessage('No se pudo conectar con el servidor. Inténtalo de nuevo más tarde.', 'error');
+            }
+        });
+
+        // Manejar el enlace de registro (simplemente envía al endpoint de registro)
+        document.getElementById('registerLink').addEventListener('click', async (event) => {
+            event.preventDefault(); // Evita la navegación por defecto
+
+            const email = document.getElementById('email').value; // Usamos el email del campo de login
+            const password = document.getElementById('password').value; // Usamos la contraseña del campo de login
+
+            if (!email || !password) {
+                showMessage('Por favor, ingresa un correo/usuario y contraseña para registrarte.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BASE_URL}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(data.message, 'success');
+                    // Puedes limpiar los campos o redirigir
+                    document.getElementById('email').value = '';
+                    document.getElementById('password').value = '';
+                } else {
+                    showMessage(data.message || 'Error al registrar el usuario.', 'error');
+                }
+            } catch (error) {
+                console.error('Error de red o del servidor:', error);
+                showMessage('No se pudo conectar con el servidor para el registro. Inténtalo de nuevo más tarde.', 'error');
+            }
+        });
+    </script>
 </body>
 </html>
