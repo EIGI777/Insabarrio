@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Insabarrio</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to right, #6EE7B7, #34D399, #10B981); /* Degradado de verdes */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px; /* Padding para evitar que el contenido toque los bordes en móviles */
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* Bordes más redondeados */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 2.5rem; /* Más padding */
+            width: 100%;
+            max-width: 480px; /* Ancho máximo para el formulario */
+            text-align: center;
+            animation: fadeIn 0.8s ease-out; /* Animación de entrada */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #D1D5DB; /* Gris claro */
+            border-radius: 0.5rem; /* Bordes redondeados */
+            font-size: 1rem;
+            transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #10B981; /* Verde más oscuro al enfocar */
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); /* Sombra suave al enfocar */
+        }
+        .btn {
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem; /* Botones más redondeados */
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .btn-primary {
+            background-color: #10B981; /* Verde principal */
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #059669; /* Verde más oscuro al pasar el ratón */
+            transform: translateY(-2px); /* Efecto de elevación */
+        }
+        .btn-secondary {
+            background-color: #E5E7EB; /* Gris claro para botones secundarios */
+            color: #4B5563; /* Texto gris oscuro */
+        }
+        .btn-secondary:hover {
+            background-color: #D1D5DB; /* Gris un poco más oscuro al pasar el ratón */
+            transform: translateY(-2px);
+        }
+        .link {
+            color: #10B981;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease-in-out;
+        }
+        .link:hover {
+            color: #059669;
+            text-decoration: underline;
+        }
+        .logo {
+            margin-bottom: 1.5rem;
+        }
+        .footer-text {
+            font-size: 0.875rem;
+            color: #6B7280; /* Gris medio */
+            margin-top: 2rem;
+        }
+        .contact-info {
+            font-size: 0.9rem;
+            color: #4B5563;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo de Insabarrio (puedes reemplazar con una imagen real) -->
+        <div class="logo">
+            <!-- Icono de corazón y cruz médica para representar salud y comunidad -->
+            <svg class="mx-auto h-20 w-20 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.656-5.656A10 10 0 105.656 18.344 10 10 0 0018.344 5.656z"></path>
+            </svg>
+            <h1 class="text-3xl font-bold text-gray-800 mt-4">Bienvenido a Insabarrio</h1>
+            <p class="text-gray-600 mt-2">Tu Portal Unificado de Salud en Carabobo</p>
+        </div>
+
+        <form action="#" method="POST" class="space-y-4">
+            <div>
+                <label for="email" class="block text-left text-sm font-medium text-gray-700 mb-1">Correo electrónico o Nombre de usuario</label>
+                <input type="text" id="email" name="email" class="input-field" placeholder="ejemplo@insabarrio.com" required>
+            </div>
+            <div>
+                <label for="password" class="block text-left text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                <input type="password" id="password" name="password" class="input-field" placeholder="••••••••" required>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                    <label for="remember-me" class="ml-2 block text-sm text-gray-900">
+                        Recuérdame en este dispositivo
+                    </label>
+                </div>
+                <div class="text-sm">
+                    <a href="#" class="link">¿Olvidaste tu contraseña?</a>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-primary">
+                    Iniciar Sesión
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">
+                ¿Eres nuevo en Insabarrio?
+                <a href="#" class="link">Regístrate aquí</a> para acceder a todos nuestros servicios de salud.
+            </p>
+        </div>
+
+        <div class="footer-text">
+            <p class="mt-4 text-gray-700 font-semibold">Unidos por tu Bienestar y el de Carabobo.</p>
+            <p class="text-gray-600">Atención médica al alcance de tu mano, desde tu comunidad hasta nuestros hospitales.</p>
+        </div>
+
+        <div class="contact-info mt-6 border-t border-gray-200 pt-6">
+            <p>¿Necesitas ayuda? Contacta a nuestro soporte técnico al <span class="font-bold">0800-INSABAR (0800-4672227)</span></p>
+            <p class="mt-2">O visita nuestra sección de <a href="#" class="link">Preguntas Frecuentes</a>.</p>
+            <p class="mt-4 text-xs text-gray-500">
+                Insabarrio | Av. Bolívar Norte, Valencia, Carabobo. | &copy; 2025 Todos los derechos reservados.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
