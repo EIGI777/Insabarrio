@@ -113,6 +113,9 @@
             color: #dc2626; /* Texto rojo oscuro */
         }
     </style>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 </head>
 <body>
     <div class="container">
@@ -130,10 +133,10 @@
         <!-- Mensaje de estado para el usuario -->
         <div id="messageBox" class="message-box"></div>
 
-        <form id="loginForm" class="space-y-4">
+        <form id="authForm" class="space-y-4">
             <div>
-                <label for="email" class="block text-left text-sm font-medium text-gray-700 mb-1">Correo electrónico o Nombre de usuario</label>
-                <input type="text" id="email" name="email" class="input-field" placeholder="ejemplo@insabarrio.com" required>
+                <label for="email" class="block text-left text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
+                <input type="email" id="email" name="email" class="input-field" placeholder="ejemplo@insabarrio.com" required>
             </div>
             <div>
                 <label for="password" class="block text-left text-sm font-medium text-gray-700 mb-1">Contraseña</label>
@@ -153,7 +156,7 @@
             </div>
 
             <div>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" id="loginButton" class="btn btn-primary">
                     Iniciar Sesión
                 </button>
             </div>
@@ -181,6 +184,20 @@
     </div>
 
     <script>
+        // Configuración de Firebase (¡Reemplaza con tus propias credenciales de Firebase!)
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY", // Reemplaza con tu API Key de Firebase
+            authDomain: "TU_AUTH_DOMAIN", // Reemplaza con tu Auth Domain de Firebase
+            projectId: "TU_PROJECT_ID", // Reemplaza con tu Project ID de Firebase
+            storageBucket: "TU_STORAGE_BUCKET", // Reemplaza con tu Storage Bucket de Firebase
+            messagingSenderId: "TU_MESSAGING_SENDER_ID", // Reemplaza con tu Messaging Sender ID de Firebase
+            appId: "TU_APP_ID" // Reemplaza con tu App ID de Firebase
+        };
+
+        // Inicializa Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
         // Función para mostrar mensajes al usuario
         function showMessage(message, type = 'success') {
             const messageBox = document.getElementById('messageBox');
@@ -192,77 +209,76 @@
             }, 5000);
         }
 
-        // URL base de tu backend (ajusta esto cuando despliegues tu backend)
-        // Si estás ejecutando el backend localmente, podría ser 'http://localhost:3000'
-        const BASE_URL = 'http://localhost:3000'; // ¡IMPORTANTE! Cambia esto por la URL de tu backend desplegado
-
         // Manejar el formulario de inicio de sesión
-        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+        document.getElementById('loginButton').addEventListener('click', async (event) => {
             event.preventDefault(); // Evita el envío por defecto del formulario
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch(`${BASE_URL}/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showMessage(data.message, 'success');
-                    // Redirigir al usuario o guardar token de sesión si lo hubiera
-                    // window.location.href = '/dashboard'; // Ejemplo de redirección
-                } else {
-                    showMessage(data.message || 'Error al iniciar sesión.', 'error');
-                }
+                // Iniciar sesión con correo y contraseña
+                await auth.signInWithEmailAndPassword(email, password);
+                showMessage('Inicio de sesión exitoso. ¡Bienvenido!', 'success');
+                // Aquí puedes redirigir al usuario a una página de dashboard
+                // window.location.href = '/dashboard.html';
             } catch (error) {
-                console.error('Error de red o del servidor:', error);
-                showMessage('No se pudo conectar con el servidor. Inténtalo de nuevo más tarde.', 'error');
+                console.error('Error al iniciar sesión:', error.code, error.message);
+                let errorMessage = 'Error al iniciar sesión. Por favor, verifica tus credenciales.';
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = 'Correo electrónico o contraseña incorrectos.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'El formato del correo electrónico es inválido.';
+                }
+                showMessage(errorMessage, 'error');
             }
         });
 
-        // Manejar el enlace de registro (simplemente envía al endpoint de registro)
+        // Manejar el enlace de registro
         document.getElementById('registerLink').addEventListener('click', async (event) => {
             event.preventDefault(); // Evita la navegación por defecto
 
-            const email = document.getElementById('email').value; // Usamos el email del campo de login
-            const password = document.getElementById('password').value; // Usamos la contraseña del campo de login
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
             if (!email || !password) {
-                showMessage('Por favor, ingresa un correo/usuario y contraseña para registrarte.', 'error');
+                showMessage('Por favor, ingresa un correo electrónico y una contraseña para registrarte.', 'error');
                 return;
             }
 
             try {
-                const response = await fetch(`${BASE_URL}/register`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showMessage(data.message, 'success');
-                    // Puedes limpiar los campos o redirigir
-                    document.getElementById('email').value = '';
-                    document.getElementById('password').value = '';
-                } else {
-                    showMessage(data.message || 'Error al registrar el usuario.', 'error');
-                }
+                // Registrar nuevo usuario con correo y contraseña
+                await auth.createUserWithEmailAndPassword(email, password);
+                showMessage('Registro exitoso. ¡Ahora puedes iniciar sesión!', 'success');
+                // Opcional: Limpiar los campos después del registro exitoso
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
             } catch (error) {
-                console.error('Error de red o del servidor:', error);
-                showMessage('No se pudo conectar con el servidor para el registro. Inténtalo de nuevo más tarde.', 'error');
+                console.error('Error al registrar usuario:', error.code, error.message);
+                let errorMessage = 'Error al registrar el usuario.';
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Este correo electrónico ya está registrado.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'El formato del correo electrónico es inválido.';
+                }
+                showMessage(errorMessage, 'error');
+            }
+        });
+
+        // Opcional: Escuchar cambios en el estado de autenticación (útil para saber si el usuario ya está logueado)
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                console.log('Usuario autenticado:', user.email);
+                // Puedes redirigir al usuario automáticamente si ya está logueado
+                // window.location.href = '/dashboard.html';
+            } else {
+                console.log('Ningún usuario autenticado.');
             }
         });
     </script>
+</body>
+</html>
 </body>
 </html>
