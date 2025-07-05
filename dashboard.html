@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Prueba - Insabarrio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #e0f7fa; /* Un color de fondo claro para diferenciar */
+            color: #00796b; /* Texto en tono verde azulado */
+            text-align: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .message-card {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 600px;
+            width: 100%;
+        }
+        .success-icon {
+            color: #28a745; /* Verde de éxito */
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .button-back {
+            background-color: #00796b;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            margin-top: 1.5rem;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+        .button-back:hover {
+            background-color: #004d40;
+        }
+    </style>
+</head>
+<body>
+    <div class="message-card">
+        <div class="success-icon">✔</div>
+        <h1 class="text-3xl font-bold mb-4">¡Página de Prueba del Panel Cargada Correctamente!</h1>
+        <p class="text-lg text-gray-700 mb-6">Si estás viendo este mensaje, significa que tu archivo `dashboard.html` está siendo servido correctamente por GitHub Pages.</p>
+        <p class="text-gray-600">Ahora podemos proceder con la integración completa.</p>
+        <a href="/index.html" class="button-back">Volver al Inicio de Sesión</a>
+    </div>
+</body>
+</html>
