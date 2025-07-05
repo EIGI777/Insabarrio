@@ -112,10 +112,25 @@
             border-color: #fee2e2; /* Borde rojo claro */
             color: #dc2626; /* Texto rojo oscuro */
         }
+        /* Estilos para el spinner de carga */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 1.5rem;
+            height: 1.5rem;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 0.5rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <!-- Firebase SDKs (Modificado para usar módulos directamente) -->
+    <!-- No se necesitan los SDKs compat si usas import { ... } from "firebase/..." -->
 </head>
 <body>
     <div class="container">
@@ -157,7 +172,7 @@
 
             <div>
                 <button type="submit" id="loginButton" class="btn btn-primary">
-                    Iniciar Sesión
+                    Iniciar Sesión <span id="loginSpinner" class="spinner" style="display: none;"></span>
                 </button>
             </div>
         </form>
@@ -165,7 +180,7 @@
         <div class="mt-6 text-center">
             <p class="text-sm text-gray-600">
                 ¿Eres nuevo en Insabarrio?
-                <a href="#" id="registerLink" class="link">Regístrate aquí</a> para acceder a todos nuestros servicios de salud.
+                <a href="#" id="registerLink" class="link">Regístrate aquí <span id="registerSpinner" class="spinner" style="display: none;"></span></a> para acceder a todos nuestros servicios de salud.
             </p>
         </div>
 
@@ -184,28 +199,38 @@
     </div>
     
     <script type="module">
-      // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+        // Importa las funciones necesarias directamente desde los módulos de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        // Si usas Analytics, también lo importarías así:
+        // import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCH_19gAq-5OqELHFq3Q8_g0ZCvm5hymSI",
-  authDomain: "insabarrioapp.firebaseapp.com",
-  projectId: "insabarrioapp",
-  storageBucket: "insabarrioapp.firebasestorage.app",
-  messagingSenderId: "567122053003",
-  appId: "1:567122053003:web:88c0b3eef0895b29b1118e",
-  measurementId: "G-18KX1FKMMY"
-};
+        // Tu configuración de Firebase (¡Asegúrate de que estos sean tus valores reales!)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCH_19gAq-5OqELHFq3Q8_g0ZCvm5hymSI",
+            authDomain: "insabarrioapp.firebaseapp.com",
+            projectId: "insabarrioapp",
+            storageBucket: "insabarrioapp.firebasestorage.app",
+            messagingSenderId: "567122053003",
+            appId: "1:567122053003:web:88c0b3eef0895b29b1118e",
+            measurementId: "G-18KX1FKMMY" // Este es opcional si no usas Analytics
+        };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-        
+        // Inicializa Firebase
+        let app;
+        let auth;
+        // let analytics; // Descomenta si usas Analytics
+
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app); // Obtiene la instancia de autenticación
+            // analytics = getAnalytics(app); // Descomenta si usas Analytics
+            console.log('Firebase inicializado correctamente.');
+        } catch (error) {
+            console.error('Error al inicializar Firebase:', error);
+            showMessage('Error crítico: No se pudo inicializar Firebase. Revisa tu configuración.', 'error');
+        }
+
         // Función para mostrar mensajes al usuario
         function showMessage(message, type = 'success') {
             const messageBox = document.getElementById('messageBox');
@@ -223,10 +248,22 @@ const analytics = getAnalytics(app);
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const loginButton = document.getElementById('loginButton');
+            const loginSpinner = document.createElement('span'); // Crear el spinner dinámicamente
+            loginSpinner.className = 'spinner';
+            loginSpinner.id = 'loginSpinner';
+            loginSpinner.style.display = 'inline-block';
+            loginButton.appendChild(loginSpinner); // Añadir el spinner al botón
+
+            loginButton.disabled = true; // Deshabilita el botón
 
             try {
+                // Asegúrate de que auth esté definido antes de usarlo
+                if (!auth) { // Simplificado de typeof auth === 'undefined'
+                    throw new Error('Firebase Auth no está inicializado. Revisa firebaseConfig.');
+                }
                 // Iniciar sesión con correo y contraseña
-                await auth.signInWithEmailAndPassword(email, password);
+                await signInWithEmailAndPassword(auth, email, password); // Usa la función importada
                 showMessage('Inicio de sesión exitoso. ¡Bienvenido!', 'success');
                 // Aquí puedes redirigir al usuario a una página de dashboard
                 // window.location.href = '/dashboard.html';
@@ -237,8 +274,15 @@ const analytics = getAnalytics(app);
                     errorMessage = 'Correo electrónico o contraseña incorrectos.';
                 } else if (error.code === 'auth/invalid-email') {
                     errorMessage = 'El formato del correo electrónico es inválido.';
+                } else if (error.code === 'auth/network-request-failed') {
+                    errorMessage = 'Error de conexión a internet. Por favor, revisa tu conexión.';
                 }
                 showMessage(errorMessage, 'error');
+            } finally {
+                loginButton.disabled = false; // Habilita el botón
+                if (loginSpinner.parentNode) {
+                    loginSpinner.parentNode.removeChild(loginSpinner); // Elimina el spinner
+                }
             }
         });
 
@@ -248,15 +292,32 @@ const analytics = getAnalytics(app);
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const registerLink = document.getElementById('registerLink');
+            const registerSpinner = document.createElement('span'); // Crear el spinner dinámicamente
+            registerSpinner.className = 'spinner';
+            registerSpinner.id = 'registerSpinner';
+            registerSpinner.style.display = 'inline-block';
+            registerLink.appendChild(registerSpinner); // Añadir el spinner al enlace
+
+            // Deshabilita el enlace y muestra el spinner
+            registerLink.style.pointerEvents = 'none'; // Deshabilita clics
 
             if (!email || !password) {
                 showMessage('Por favor, ingresa un correo electrónico y una contraseña para registrarte.', 'error');
+                registerLink.style.pointerEvents = 'auto'; // Habilita clics
+                if (registerSpinner.parentNode) {
+                    registerSpinner.parentNode.removeChild(registerSpinner); // Elimina el spinner
+                }
                 return;
             }
 
             try {
+                // Asegúrate de que auth esté definido antes de usarlo
+                if (!auth) { // Simplificado de typeof auth === 'undefined'
+                    throw new Error('Firebase Auth no está inicializado. Revisa firebaseConfig.');
+                }
                 // Registrar nuevo usuario con correo y contraseña
-                await auth.createUserWithEmailAndPassword(email, password);
+                await createUserWithEmailAndPassword(auth, email, password); // Usa la función importada
                 showMessage('Registro exitoso. ¡Ahora puedes iniciar sesión!', 'success');
                 // Opcional: Limpiar los campos después del registro exitoso
                 document.getElementById('email').value = '';
@@ -270,21 +331,31 @@ const analytics = getAnalytics(app);
                     errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
                 } else if (error.code === 'auth/invalid-email') {
                     errorMessage = 'El formato del correo electrónico es inválido.';
+                } else if (error.code === 'auth/network-request-failed') {
+                    errorMessage = 'Error de conexión a internet. Por favor, revisa tu conexión.';
                 }
                 showMessage(errorMessage, 'error');
+            } finally {
+                registerLink.style.pointerEvents = 'auto'; // Habilita clics
+                if (registerSpinner.parentNode) {
+                    registerSpinner.parentNode.removeChild(registerSpinner); // Elimina el spinner
+                }
             }
         });
 
         // Opcional: Escuchar cambios en el estado de autenticación (útil para saber si el usuario ya está logueado)
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                console.log('Usuario autenticado:', user.email);
-                // Puedes redirigir al usuario automáticamente si ya está logueado
-                // window.location.href = '/dashboard.html';
-            } else {
-                console.log('Ningún usuario autenticado.');
-            }
-        });
+        // Solo si auth está definido
+        if (auth) { // Simplificado de typeof auth !== 'undefined'
+            onAuthStateChanged(auth, user => { // Usa la función importada
+                if (user) {
+                    console.log('Usuario autenticado:', user.email);
+                    // Puedes redirigir al usuario automáticamente si ya está logueado
+                    // window.location.href = '/dashboard.html';
+                } else {
+                    console.log('Ningún usuario autenticado.');
+                }
+            });
+        }
     </script>
 </body>
 </html>
