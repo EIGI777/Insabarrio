@@ -118,29 +118,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 </head>
 <body>
-    <script type="module">
-      // Import the functions you need from the SDKs you need
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
-      // TODO: Add SDKs for Firebase products that you want to use
-      // https://firebase.google.com/docs/web/setup#available-libraries
-
-      // Your web app's Firebase configuration
-      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-      const firebaseConfig = {
-        apiKey: "AIzaSyCH_19gAq-5OqELHFq3Q8_g0ZCvm5hymSI",
-        authDomain: "insabarrioapp.firebaseapp.com",
-        projectId: "insabarrioapp",
-        storageBucket: "insabarrioapp.firebasestorage.app",
-        messagingSenderId: "567122053003",
-        appId: "1:567122053003:web:3ef3b980463ae942b1118e",
-        measurementId: "G-3CWF6K82ZR"
-      };
-
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-    </script>
     <div class="container">
         <!-- Logo de Insabarrio (puedes reemplazar con una imagen real) -->
         <div class="logo">
@@ -205,21 +182,29 @@
             </p>
         </div>
     </div>
+    
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
 
-    <script>
-        // Configuración de Firebase (¡Reemplaza con tus propias credenciales de Firebase!)
-        const firebaseConfig = {
-            apiKey: "TU_API_KEY", // Reemplaza con tu API Key de Firebase
-            authDomain: "TU_AUTH_DOMAIN", // Reemplaza con tu Auth Domain de Firebase
-            projectId: "TU_PROJECT_ID", // Reemplaza con tu Project ID de Firebase
-            storageBucket: "TU_STORAGE_BUCKET", // Reemplaza con tu Storage Bucket de Firebase
-            messagingSenderId: "TU_MESSAGING_SENDER_ID", // Reemplaza con tu Messaging Sender ID de Firebase
-            appId: "TU_APP_ID" // Reemplaza con tu App ID de Firebase
-        };
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyCH_19gAq-5OqELHFq3Q8_g0ZCvm5hymSI",
+        authDomain: "insabarrioapp.firebaseapp.com",
+        projectId: "insabarrioapp",
+        storageBucket: "insabarrioapp.firebasestorage.app",
+        messagingSenderId: "567122053003",
+        appId: "1:567122053003:web:3ef3b980463ae942b1118e",
+        measurementId: "G-3CWF6K82ZR"
+      };
 
-        // Inicializa Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
 
         // Función para mostrar mensajes al usuario
         function showMessage(message, type = 'success') {
@@ -301,7 +286,5 @@
             }
         });
     </script>
-</body>
-</html>
 </body>
 </html>
