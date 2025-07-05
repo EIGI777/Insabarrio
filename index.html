@@ -435,7 +435,7 @@
                         if (userData.userType === 'medico') {
                             showMessage('Inicio de sesión exitoso. ¡Bienvenido, Médico!', 'success');
                             // Redirigir al panel de médico
-                            window.location.href = 'dashboard.html'; // ¡Asegúrate de que esta ruta sea correcta!
+                            window.location.href = '/dashboard.html'; // ¡Asegúrate de que esta ruta sea correcta!
                         } else {
                             // Si no es médico, cerrar sesión y mostrar mensaje
                             await signOut(auth);
@@ -479,8 +479,8 @@
                         const docSnap = await getDoc(userDocRef);
                         if (docSnap.exists() && docSnap.data().userType === 'medico') {
                             // Solo redirigir si no estamos ya en la página del dashboard
-                            if (window.location.pathname !== 'dashboard.html') {
-                                window.location.href = 'dashboard.html';
+                            if (window.location.pathname !== '/dashboard.html') {
+                                window.location.href = '/dashboard.html';
                             }
                         } else if (docSnap.exists() && docSnap.data().userType !== 'medico') {
                             // Si el usuario no es médico y está logueado en la página de login, lo deslogueamos
